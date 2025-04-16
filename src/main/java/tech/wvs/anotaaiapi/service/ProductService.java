@@ -1,0 +1,73 @@
+package tech.wvs.anotaaiapi.service;
+
+import org.springframework.stereotype.Service;
+import tech.wvs.anotaaiapi.controller.product.dto.ProductRequest;
+import tech.wvs.anotaaiapi.controller.product.dto.ProductUpdateRequest;
+import tech.wvs.anotaaiapi.domain.product.Product;
+import tech.wvs.anotaaiapi.domain.product.ProductMapper;
+import tech.wvs.anotaaiapi.repositories.ProductRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class ProductService {
+    private final ProductRepository productRepository;
+    private final CategoryService categoryService;
+
+    public ProductService(ProductRepository productRepository, CategoryService categoryService) {
+        this.productRepository = productRepository;
+        this.categoryService = categoryService;
+    }
+
+    public Product create(ProductRequest dto) {
+        var entity = ProductMapper.toEntity(dto);
+        var category = categoryService.findById(dto.categoryId())
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+
+        entity.setCategory(category);
+        return productRepository.save(entity);
+    }
+
+    public List<Product> findAll() {
+        return productRepository.findAll();
+    }
+
+    public Optional<Product> findById(String id) {
+        return productRepository.findById(id);
+    }
+
+    public Product update(String id, ProductUpdateRequest dto) {
+        var entity = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        updateFields(dto, entity);
+        return productRepository.save(entity);
+    }
+
+    private void updateFields(ProductUpdateRequest dto, Product entity) {
+        if (dto.title() != null && !dto.title().isBlank())
+            entity.setTitle(dto.title());
+
+        if (dto.description() != null && !dto.description().isBlank())
+            entity.setDescription(dto.description());
+
+        if (dto.price() != null)
+            entity.setPrice(dto.price());
+
+        if(dto.category() != null && !dto.category().isBlank()) {
+            var category = categoryService.findById(dto.category())
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+
+            entity.setCategory(category);
+        }
+    }
+
+    public boolean delete(String id) {
+        var exists = productRepository.existsById(id);
+        if (exists)
+            productRepository.deleteById(id);
+
+        return exists;
+    }
+}
