@@ -2,6 +2,6 @@ spring:
   application:
     name: anota-ai-api
 
-  data:
-    mongodb:
-      uri: mongodb://admin:secret@localhost:27017/anota-ai?authSource=admin
+#  data:
+#    mongodb:
+#      uri: mongodb://admin:secret@localhost:27017/anota-ai?authSource=admin
