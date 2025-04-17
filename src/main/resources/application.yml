@@ -5,3 +5,19 @@ spring:
 #  data:
 #    mongodb:
 #      uri: mongodb://admin:secret@localhost:27017/anota-ai?authSource=admin
+
+aws:
+  access-key-id: ${AWS_ACCESS_KEY}
+  secret-key: ${AWS_SECRET_KEY}
+  region: us-east-1
+  sns:
+    topic:
+      catalog:
+        name: catalog-emit
+        arn: arn:aws:sns:us-east-1:471112884093:catalog-emit
+
+  java:
+    v1:
+      printLocation: true
+      disablePrintLocation: true
+      disableDeprecationAnnouncement: true
