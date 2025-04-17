@@ -6,6 +6,8 @@ import tech.wvs.anotaaiapi.controller.product.dto.ProductUpdateRequest;
 import tech.wvs.anotaaiapi.domain.product.Product;
 import tech.wvs.anotaaiapi.domain.product.ProductMapper;
 import tech.wvs.anotaaiapi.repositories.ProductRepository;
+import tech.wvs.anotaaiapi.service.aws.AwsSnsService;
+import tech.wvs.anotaaiapi.service.aws.MessageDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,10 +16,12 @@ import java.util.Optional;
 public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryService categoryService;
+    private final AwsSnsService awsSnsService;
 
-    public ProductService(ProductRepository productRepository, CategoryService categoryService) {
+    public ProductService(ProductRepository productRepository, CategoryService categoryService, AwsSnsService awsSnsService) {
         this.productRepository = productRepository;
         this.categoryService = categoryService;
+        this.awsSnsService = awsSnsService;
     }
 
     public Product create(ProductRequest dto) {
@@ -26,7 +30,12 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
         entity.setCategory(category);
-        return productRepository.save(entity);
+        productRepository.save(entity);
+
+        // Publish a message to the SNS topic
+        this.awsSnsService.publish(new MessageDto(entity.getOwnerId()));
+
+        return entity;
     }
 
     public List<Product> findAll() {
@@ -42,7 +51,12 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
         updateFields(dto, entity);
-        return productRepository.save(entity);
+        productRepository.save(entity);
+
+        // Publish a message to the SNS topic
+        this.awsSnsService.publish(new MessageDto(entity.getOwnerId()));
+
+        return entity;
     }
 
     private void updateFields(ProductUpdateRequest dto, Product entity) {
@@ -55,7 +69,7 @@ public class ProductService {
         if (dto.price() != null)
             entity.setPrice(dto.price());
 
-        if(dto.category() != null && !dto.category().isBlank()) {
+        if (dto.category() != null && !dto.category().isBlank()) {
             var category = categoryService.findById(dto.category())
                     .orElseThrow(() -> new RuntimeException("Category not found"));
 
