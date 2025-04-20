@@ -33,7 +33,7 @@ public class ProductService {
         productRepository.save(entity);
 
         // Publish a message to the SNS topic
-        this.awsSnsService.publish(new MessageDto(entity.getOwnerId()));
+        this.awsSnsService.publish(new MessageDto(entity.toString()));
 
         return entity;
     }
@@ -54,7 +54,7 @@ public class ProductService {
         productRepository.save(entity);
 
         // Publish a message to the SNS topic
-        this.awsSnsService.publish(new MessageDto(entity.getOwnerId()));
+        this.awsSnsService.publish(new MessageDto(entity.toString()));
 
         return entity;
     }

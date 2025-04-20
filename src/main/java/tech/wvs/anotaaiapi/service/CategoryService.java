@@ -6,6 +6,8 @@ import tech.wvs.anotaaiapi.controller.category.dto.CategoryUpdateRequest;
 import tech.wvs.anotaaiapi.domain.category.Category;
 import tech.wvs.anotaaiapi.domain.category.CategoryMapper;
 import tech.wvs.anotaaiapi.repositories.CategoryRepository;
+import tech.wvs.anotaaiapi.service.aws.AwsSnsService;
+import tech.wvs.anotaaiapi.service.aws.MessageDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,9 +15,11 @@ import java.util.Optional;
 @Service
 public class CategoryService {
 
+    private final AwsSnsService awsSnsService;
     private final CategoryRepository categoryRepository;
 
-    public CategoryService(CategoryRepository categoryRepository) {
+    public CategoryService(AwsSnsService awsSnsService, CategoryRepository categoryRepository) {
+        this.awsSnsService = awsSnsService;
         this.categoryRepository = categoryRepository;
     }
 
@@ -29,7 +33,12 @@ public class CategoryService {
             throw new RuntimeException("Category with this title already exists with id = " + existingCategory.get().getId());
         }
 
-        return categoryRepository.save(entity);
+        categoryRepository.save(entity);
+
+        //Publish message to SNS topic
+        this.awsSnsService.publish(new MessageDto(entity.toString()));
+
+        return entity;
     }
 
     public List<Category> findAll() {
@@ -45,6 +54,10 @@ public class CategoryService {
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
         updateFields(dto, entity);
+
+        //Publish message to SNS topic
+        this.awsSnsService.publish(new MessageDto(entity.toString()));
+
         return categoryRepository.save(entity);
     }
 
