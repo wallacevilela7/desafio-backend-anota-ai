@@ -21,6 +21,14 @@ public class CategoryService {
 
     public Category create(CategoryRequest dto) {
         var entity = CategoryMapper.toEntity(dto);
+
+        // Check if the category already exists
+        var existingCategory = categoryRepository.findByTitle(dto.title());
+
+        if (existingCategory.isPresent()) {
+            throw new RuntimeException("Category with this title already exists with id = " + existingCategory.get().getId());
+        }
+
         return categoryRepository.save(entity);
     }
 
