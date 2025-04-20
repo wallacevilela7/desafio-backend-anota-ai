@@ -7,5 +7,5 @@ public record ProductResponse(String id,
                               String description,
                               String ownerId,
                               Integer price,
-                              Category category) {
+                              String categoryId) {
 }
