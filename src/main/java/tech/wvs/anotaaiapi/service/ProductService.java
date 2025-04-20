@@ -29,7 +29,7 @@ public class ProductService {
         var category = categoryService.findById(dto.categoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
-        entity.setCategory(category);
+        entity.setCategory(dto.categoryId());
         productRepository.save(entity);
 
         // Publish a message to the SNS topic
@@ -69,11 +69,11 @@ public class ProductService {
         if (dto.price() != null)
             entity.setPrice(dto.price());
 
-        if (dto.category() != null && !dto.category().isBlank()) {
-            var category = categoryService.findById(dto.category())
+        if (dto.categoryId() != null && !dto.categoryId().isBlank()) {
+            var category = categoryService.findById(dto.categoryId())
                     .orElseThrow(() -> new RuntimeException("Category not found"));
 
-            entity.setCategory(category);
+            entity.setCategory(dto.categoryId());
         }
     }
 
